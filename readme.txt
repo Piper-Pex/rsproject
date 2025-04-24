@@ -1,5 +1,10 @@
 
+I have trained the model and can use the prediction part directly which only uses CPU.
+
 ####### For prediction  with CPU only #####################
+You first need to download the model file to the project root directory
+https://drive.google.com/file/d/1FHq_vi2ccZm07lN1TXy4FhDt3-nkjvFD/view?usp=sharing
+
 u need create a conda enviroment with python 3.9  (conda create -n rsproject python==3.9)
 
 u can install by (pip install requirements.txt) directly
@@ -17,8 +22,10 @@ pip install keras==2.6.0
 ################################################
 
 
-I have trained the model and can use the prediction part directly which only uses CPU.
 ################ for training with GPU, you need ##############################
+User rating data files for training (prediction part does not need to be downloaded), you need to download it to the project directory
+(Download Link: http://labrosa.ee.columbia.edu/~dpwe/tmp/train_triplets.txt.zip)
+
 cuda toolkit 11.8 (i cant run my cuda in conda enviroment, so i just training in my base enviroment)
 numpy==1.19.5
 pandas==1.4.4
