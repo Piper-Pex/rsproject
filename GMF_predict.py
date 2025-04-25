@@ -210,13 +210,13 @@ class AdvancedMusicRecommender:
                 
                 scores = np.dot(self.song_embeddings, virtual_user)
                 
-                # 使用当前选择的ID来排除已选歌曲
+                # Use the current selected ID to exclude the selected songs
                 input_indices = [
                     self.song_id_to_idx[sid] 
-                    for sid in selected_ids  # 使用实际选择的ID而不是all_matches
+                    for sid in selected_ids  # use the actual selected ID instead of all_matches
                     if sid in self.song_id_to_idx
                 ]
-                scores[input_indices] = -np.inf  # 排除已选歌曲
+                scores[input_indices] = -np.inf  # discard the selected songs
             except Exception as e:
                 if verbose:
                     print(f"❌ Similarity calculation failed: {str(e)}")

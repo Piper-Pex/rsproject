@@ -7,10 +7,10 @@ from sklearn.preprocessing import LabelEncoder
 import h5py
 import os
 # ----------------------
-# 全局禁用GPU配置
+# Disable GPU configuration
 # ----------------------
-os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  # 禁用GPU可见性
-tf.config.set_visible_devices([], 'GPU')  # 隐藏所有GPU设备
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  # Disable GPU visibility
+tf.config.set_visible_devices([], 'GPU')  # Hide all GPU devices
 
 # ----------------------
 # Load metadata 
@@ -45,34 +45,34 @@ def load_metadata(filename):
 # ----------------------
 class AdvancedMusicRecommender:
     def __init__(self):
-        # 强制使用CPU配置
-        tf.config.threading.set_inter_op_parallelism_threads(4)  # 并行操作线程
-        tf.config.threading.set_intra_op_parallelism_threads(4)  # 单操作线程
+        # Force CPU configuration
+        tf.config.threading.set_inter_op_parallelism_threads(4)  # parallel operation threads
+        tf.config.threading.set_intra_op_parallelism_threads(4)  
         
         # Load metadata
         self.metadata = load_metadata('msd_summary_file.h5')
         
-        # 在CPU上下文加载模型   
+        # Load model in CPU context  
         with tf.device('/CPU:0'):
             self.model = tf.keras.models.load_model('best_fusion_model.keras')
             
         # Load encoders
         self.song_encoder = joblib.load('song_encoder_fusion.pkl')
         
-        # 处理max_play
+        # handle max_play
         try:
             self.max_play = joblib.load('max_play_fusion.pkl')
         except FileNotFoundError:
             print("Warning: Using default max_play=1")
             self.max_play = 1
         
-        # 创建歌曲索引映射
+        # Create song ID to index mapping
         self.song_id_to_idx = {
             song_id: idx 
             for idx, song_id in enumerate(self.song_encoder.classes_)
         }
         
-        # 获取歌曲嵌入
+        # get song embeddings
         gmf_emb = self.model.get_layer('fusion_gmf_item_embed').get_weights()[0]   # shape=[num_items, 16]
         mlp_emb = self.model.get_layer('fusion_mlp_item_embed').get_weights()[0]   # shape=[num_items, 64]
         self.song_embeddings = np.concatenate([gmf_emb, mlp_emb], axis=1)         # shape=[num_items, 80]
@@ -223,13 +223,13 @@ class AdvancedMusicRecommender:
                 
                 scores = np.dot(self.song_embeddings, virtual_user)
                 
-                # 使用当前选择的ID来排除已选歌曲
+                # Use the current selected ID to exclude the selected songs
                 input_indices = [
                     self.song_id_to_idx[sid] 
-                    for sid in selected_ids  # 使用实际选择的ID而不是all_matches
+                    for sid in selected_ids  # Use the actual selected ID instead of all_matches
                     if sid in self.song_id_to_idx
                 ]
-                scores[input_indices] = -np.inf  # 排除已选歌曲
+                scores[input_indices] = -np.inf  # discard the selected songs
             except Exception as e:
                 if verbose:
                     print(f"❌ Similarity calculation failed: {str(e)}")
@@ -273,23 +273,23 @@ class AdvancedMusicRecommender:
 # Interactive Recommendation Flow
 # ----------------------
 def interactive_recommendation():
-    # 确保子进程也禁用GPU
+    # Disable GPU
     os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
     tf.config.set_visible_devices([], 'GPU')
     
     recommender = AdvancedMusicRecommender()
     
     while True:
-        user_input = input("\n🎵 请输入你喜欢的歌曲/歌手（输入exit退出）:").strip()
+        user_input = input("\n🎵 Please enter your favorite songs/artists (enter 'exit' to quit)::").strip()
         if user_input.lower() == 'exit':
             break
             
         result = recommender.generate_recommendations(user_input.split(','))
         if not result.empty:
-            print("\n推荐结果：")
+            print("\n🎧 Recommended songs for you：")
             print(result[['title', 'artist_name', 'predicted_plays']].head(10).to_string(index=False))
             
-        # 内存清理
+        # Clear memory
         tf.keras.backend.clear_session()
         import gc; gc.collect()
 
